@@ -15,6 +15,7 @@ from starlette.routing import Mount
 import uvicorn
 
 from rhos_ls_mcps import auth as auth_module
+from rhos_ls_mcps import extra_endpoints
 from rhos_ls_mcps import oc
 from rhos_ls_mcps import osc
 from rhos_ls_mcps import settings
@@ -83,6 +84,8 @@ def create_app():
         routes.append(Mount("/openstack", app=mcp_osp.streamable_http_app()))
     if mcp_ocp:
         routes.append(Mount("/openshift", app=mcp_ocp.streamable_http_app()))
+
+    routes.extend(extra_endpoints.get_routes())
 
     starlette_app = Starlette(routes=routes, lifespan=lifespan)
 
