@@ -464,6 +464,8 @@ class MyOpenStackShell(osc_shell.OpenStackShell):
                     version_info["Service Type"]
                 )
                 version = version_info["Max Microversion"] or version_info["Version"]
+                if not version:
+                    continue
                 # Keystone is weird, it reports 3.14 but doesn't accept it :-(
                 if arg_name in (
                     "os_identity_api_version",
