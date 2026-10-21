@@ -55,6 +55,22 @@ on:
         required: false
         type: string
         default: ""
+      label_s2i_stream:
+        description: |
+          Value that should be used for the s2i.openstack.org/stream label. Passed
+          to the Containerfile via the STREAM variable. Ensure you have s2i.openstack.org/stream=${STREAM}
+          along with ARG STREAM in your Containerfile.
+        required: false
+        type: string
+        default: main
+      label_revision:
+        description: |
+          Value that should be used for the org.opencontainers.image.revision label.
+          Passed to the Containerfile via the GIT_REVISION variable. Ensure you have
+          ARG GIT_REVISION and LABEL org.opencontainers.image.revision=${GIT_REVISION}
+          in your Containerfile.
+        required: false
+        type: string
     secrets:
       QUAY_USERNAME:
         description: Quay username used to publish the image.
@@ -116,7 +132,10 @@ jobs:
           tags: ${{ env.TAGS }}
           oci: true
           context: ${{ env.BUILD_CONTEXT }}
-          build-args: ${{ inputs.build_args }}
+          build-args: |
+            STREAM=${{ inputs.label_s2i_stream || github.base_ref || github.ref_name }}
+            GIT_REVISION=${{ inputs.label_revision || github.event.pull_request.head.sha || github.sha }}
+            ${{ inputs.build_args }}
           containerfiles: |
             ${{ env.CONTAINERFILE }}
 

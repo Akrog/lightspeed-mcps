@@ -1,4 +1,3 @@
-# Use this base image so everything comes from RPM packages (including OSC plugins)
 ARG BUILDER_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:latest
 ARG BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:latest
 ARG S2I_FOLDER=./.s2i
@@ -25,13 +24,21 @@ RUN tar xvf oc.tar.gz oc && \
 
 FROM $BASE_IMAGE
 ARG S2I_FOLDER
-LABEL com.redhat.component="rhos-ls-mcps" \
-      name="openstack-lightspeed/rhos-mcps" \
+ARG STREAM
+ARG GIT_REVISION
+
+LABEL com.redhat.component="openstack-lightspeed-mcps" \
+      name="openstack-k8s-operators/lightspeed-mcps" \
       summary="MCP server providing OpenStack tools for RHOS-Lightspeed" \
       io.k8s.name="rhos-mcps" \
       io.k8s.description="MCP Tools for RHOS-Lightspeed" \
       io.openshift.tags="openstack,lightspeed,mcp" \
-      org.label-schema.vcs-url="https://github.com/openstack-k8s-operators/lightspeed-mcps"
+      org.label-schema.vcs-url="https://github.com/openstack-k8s-operators/lightspeed-mcps" \
+      s2i.openstack.org/stream=${STREAM} \
+      org.opencontainers.image.revision=${GIT_REVISION} \
+      org.opencontainers.image.title="OpenStack Lightspeed MCPs" \
+      org.opencontainers.image.description="MCP server providing OpenStack tools for RHOS-Lightspeed" \
+      org.opencontainers.image.source="https://github.com/openstack-k8s-operators/lightspeed-mcps"
 
 WORKDIR /app
 
