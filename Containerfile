@@ -1,4 +1,3 @@
-# Use this base image so everything comes from RPM packages (including OSC plugins)
 ARG BUILDER_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:latest
 ARG BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:latest
 ARG S2I_FOLDER=./.s2i
