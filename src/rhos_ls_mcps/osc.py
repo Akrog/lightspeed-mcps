@@ -80,7 +80,6 @@ DELETE_GLOBAL_ARGS: list[str] = [
     "--os-data-processing-url",
     "--os-username",
     "--os-password",
-    "--os-endpoint",
     "--os-trust-id",
     "--os-identity-provider",
     "--os-client-secret",
@@ -115,6 +114,7 @@ DELETE_GLOBAL_ARGS: list[str] = [
 REJECT_GLOBAL_ARGS: list[str] = [
     "--os-auth-url",
     "--os-token",
+    "--os-endpoint",
     "--insecure",
     "--os-cacert",
 ]
@@ -605,7 +605,7 @@ def get_osp_credentials_args(ctx: Context) -> list[str]:
         logger.debug(
             f"Using token and URL from request headers for credentials: {url_header}"
         )
-        return ["--os-token", token_header, "--os-url", url_header]
+        return ["--os-token", token_header, "--os-endpoint", url_header]
 
     # Check that we actually have the credential files in a known location
     for config_dir in [

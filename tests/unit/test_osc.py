@@ -89,7 +89,7 @@ class OpenStackCredentialTests(unittest.TestCase):
             osc.get_osp_credentials_args(
                 context({"OS_TOKEN": "Bearer token", "OS_URL": "https://api"})
             ),
-            ["--os-token", "token", "--os-url", "https://api"],
+            ["--os-token", "token", "--os-endpoint", "https://api"],
         )
 
     def test_uses_credential_files_when_headers_are_absent(self):
@@ -204,6 +204,12 @@ class OpenStackShellHelperTests(unittest.TestCase):
     def test_forbidden_parser_argument_raises_tool_error(self):
         with self.assertRaisesRegex(ToolError, "forbidden global"):
             osc.MyOpenStackShell._fail_on_argument("secret")
+
+    def test_endpoint_argument_is_rejected_but_usable_internally(self):
+        # We pass --os-endpoint ourselves for header credentials, so it must
+        # keep its parser type; users must not be able to inject it.
+        self.assertNotIn("--os-endpoint", osc.DELETE_GLOBAL_ARGS)
+        self.assertIn("--os-endpoint", osc.REJECT_GLOBAL_ARGS)
 
 
 class OpenStackShellInitializationTests(unittest.IsolatedAsyncioTestCase):
