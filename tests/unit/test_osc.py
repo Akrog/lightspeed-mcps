@@ -89,7 +89,14 @@ class OpenStackCredentialTests(unittest.TestCase):
             osc.get_osp_credentials_args(
                 context({"OS_TOKEN": "Bearer token", "OS_URL": "https://api"})
             ),
-            ["--os-token", "token", "--os-endpoint", "https://api"],
+            [
+                "--os-auth-type",
+                "mcp_token",
+                "--os-token",
+                "token",
+                "--os-endpoint",
+                "https://api",
+            ],
         )
 
     def test_uses_credential_files_when_headers_are_absent(self):
@@ -205,11 +212,13 @@ class OpenStackShellHelperTests(unittest.TestCase):
         with self.assertRaisesRegex(ToolError, "forbidden global"):
             osc.MyOpenStackShell._fail_on_argument("secret")
 
-    def test_endpoint_argument_is_rejected_but_usable_internally(self):
-        # We pass --os-endpoint ourselves for header credentials, so it must
-        # keep its parser type; users must not be able to inject it.
-        self.assertNotIn("--os-endpoint", osc.DELETE_GLOBAL_ARGS)
-        self.assertIn("--os-endpoint", osc.REJECT_GLOBAL_ARGS)
+    def test_internal_arguments_are_rejected_but_usable_internally(self):
+        # We pass --os-endpoint and --os-auth-type ourselves for header
+        # credentials, so they must keep their parser type; users must not be
+        # able to inject them.
+        for arg in ("--os-endpoint", "--os-auth-type"):
+            self.assertNotIn(arg, osc.DELETE_GLOBAL_ARGS)
+            self.assertIn(arg, osc.REJECT_GLOBAL_ARGS)
 
 
 class OpenStackShellInitializationTests(unittest.IsolatedAsyncioTestCase):
@@ -251,6 +260,16 @@ class OpenStackShellInitializationTests(unittest.IsolatedAsyncioTestCase):
         )
         with self.assertRaisesRegex(ToolError, "Failed to get API versions"):
             await osc.MyOpenStackShell._initialize_api_versions(shell, [])
+
+    async def test_skips_api_version_defaults_for_endpoint_credentials(self):
+        parser = MagicMock()
+        shell = SimpleNamespace(
+            _do_run=Mock(return_value=(1, "out", "err")), parser=parser
+        )
+        await osc.MyOpenStackShell._initialize_api_versions(
+            shell, ["--os-token", "t", "--os-endpoint", "https://api"]
+        )
+        parser.set_defaults.assert_not_called()
 
     async def test_initializes_api_versions_and_global_args_once(self):
         shell = SimpleNamespace(
