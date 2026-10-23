@@ -13,7 +13,8 @@ We create 2 different MCP routes: `/openstack/` and `/openshift/` and tools shou
 Run the test suite with the locked dependencies:
 
 ```bash
-uv run --locked coverage run -m unittest discover -s tests -t . -v
+uv run --locked coverage run -m unittest discover -s tests/unit -t . -v
+uv run --locked coverage run --append -m unittest discover -s tests/component -t . -v
 uv run --locked coverage report
 ```
 
