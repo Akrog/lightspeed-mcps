@@ -1,0 +1,47 @@
+---
+# pre_kuttl hook for lightspeed-mcps-integration-tests-crc: deploy the
+# OpenStack control plane on the CRC cluster the node already runs.
+#
+# run_hook executes this playbook with ci-framework's ansible.cfg and the
+# zuul inventory, so the install_yamls_makes role generated during the
+# bootstrap is available, and openshift_login has already run.
+
+- name: Deploy the OpenStack control plane on CRC
+  hosts: localhost
+  gather_facts: true
+  vars:
+    # Same environment as the kuttl tests: the install_yamls variables
+    # (OUT, ...) plus oc in PATH. TIMEOUT is raised from the 500s default
+    # because a full control plane on a 6 vCPU CRC takes much longer to
+    # become Ready.
+    make_env: >-
+      {{ cifmw_install_yamls_environment
+         | combine({'PATH': cifmw_path, 'TIMEOUT': '90m'}) }}
+  tasks:
+    - name: Initialize the local-storage PVs in the CRC VM
+      ansible.builtin.include_role:
+        name: install_yamls_makes
+        tasks_from: make_crc_storage_with_retries
+      vars:
+        make_crc_storage_with_retries_env: "{{ make_env }}"
+
+    - name: Install the openstack-operator from the OLM catalog
+      ansible.builtin.include_role:
+        name: install_yamls_makes
+        tasks_from: make_openstack
+      vars:
+        make_openstack_env: "{{ make_env }}"
+
+    - name: Create the openstack init resource (deploys the operators)
+      ansible.builtin.include_role:
+        name: install_yamls_makes
+        tasks_from: make_openstack_init
+      vars:
+        make_openstack_init_env: "{{ make_env }}"
+
+    - name: Deploy the control plane and wait for it to be Ready
+      ansible.builtin.include_role:
+        name: install_yamls_makes
+        tasks_from: make_openstack_wait_deploy
+      vars:
+        make_openstack_wait_deploy_env: "{{ make_env }}"
